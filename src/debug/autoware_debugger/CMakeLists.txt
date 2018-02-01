@@ -11,7 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   lane_planner
   autoware_msgs
   amathutils
+  dynamic_reconfigure
 )
+
+generate_dynamic_reconfigure_options(cfg/WaypointDebugger.cfg)
 
 ###################################
 ## catkin specific configuration ##
@@ -19,13 +22,15 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES lane_follower
-  CATKIN_DEPENDS roscpp std_msgs tf waypoint_follower vector_map lane_planner autoware_msgs amathutils
+  CATKIN_DEPENDS roscpp std_msgs tf waypoint_follower vector_map lane_planner autoware_msgs amathutils 
   DEPENDS gnss
 )
 
 ###########
 ## Build ##
 ###########
+
+
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -O2 -g -Wall ${CMAKE_CXX_FLAGS}")
 
@@ -35,4 +40,9 @@ include_directories(
 
 add_executable(waypoint_debugger  nodes/waypoint_debugger/waypoint_debugger.cpp)
 target_link_libraries(waypoint_debugger ${catkin_LIBRARIES})
-add_dependencies(waypoint_debugger ${catkin_EXPORTED_TARGETS})
+add_dependencies(waypoint_debugger ${catkin_EXPORTED_TARGETS}
+					WaypointDebugger_gencfg)
+
+add_executable(lane_debugger  nodes/lane_debugger/lane_debugger.cpp)
+target_link_libraries(lane_debugger ${catkin_LIBRARIES})
+add_dependencies(lane_debugger ${catkin_EXPORTED_TARGETS})
