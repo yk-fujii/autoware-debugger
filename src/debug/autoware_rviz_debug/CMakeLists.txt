@@ -26,7 +26,6 @@ add_definitions(-DQT_NO_KEYWORDS )
 SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 set(SRC_FILES
-  src/drive_widget.cpp
   src/decision_maker_panel.cpp
 )
 

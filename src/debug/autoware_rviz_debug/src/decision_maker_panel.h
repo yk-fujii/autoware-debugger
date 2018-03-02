@@ -30,77 +30,33 @@
 #define TELEOP_PANEL_H
 
 #ifndef Q_MOC_RUN
-# include <ros/ros.h>
+#include <ros/ros.h>
 
-# include <rviz/panel.h>
+#include <rviz/panel.h>
 #endif
 
 class QLineEdit;
 
 namespace autoware_rviz_debug
 {
-
-class DriveWidget;
-
-// BEGIN_TUTORIAL
-// Here we declare our new subclass of rviz::Panel.  Every panel which
-// can be added via the Panels/Add_New_Panel menu is a subclass of
-// rviz::Panel.
-//
-// DecisionMakerPanel will show a text-entry field to set the output topic
-// and a 2D control area.  The 2D control area is implemented by the
-// DriveWidget class, and is described there.
-class DecisionMakerPanel: public rviz::Panel
+class DecisionMakerPanel : public rviz::Panel
 {
-Q_OBJECT
+  Q_OBJECT
 public:
-  DecisionMakerPanel( QWidget* parent = 0 );
+  DecisionMakerPanel(QWidget* parent = 0);
 
-  // Now we declare overrides of rviz::Panel functions for saving and
-  // loading data from the config file.  Here the data is the
-  // topic name.
-  virtual void load( const rviz::Config& config );
-  virtual void save( rviz::Config config ) const;
+  virtual void load(const rviz::Config& config);
+  virtual void save(rviz::Config config) const;
 
-  // Next come a couple of public Qt slots.
 public Q_SLOTS:
-  void setVel( float linear_velocity_, float angular_velocity_ );
-  void setTopic( const QString& topic );
-
-protected Q_SLOTS:
-  // sendvel() publishes the current velocity values to a ROS
-  // topic.  Internally this is connected to a timer which calls it 10
-  // times per second.
-  void sendVel();
-
-  // updateTopic() reads the topic name from the QLineEdit and calls
-  // setTopic() with the result.
-  void updateTopic();
+  void sendTopic(int flag);
 
   // Then we finish up with protected member variables.
 protected:
-  // The control-area widget which turns mouse events into command
-  // velocities.
-  DriveWidget* drive_widget_;
-
-  // One-line text editor for entering the outgoing ROS topic name.
-  QLineEdit* output_topic_editor_;
-
-  // The current name of the output topic.
-  QString output_topic_;
-
-  // The ROS publisher for the command velocity.
-  ros::Publisher velocity_publisher_;
-
-  // The ROS node handle.
+  ros::Publisher statecmd_publisher_;
   ros::NodeHandle nh_;
-
-  // The latest velocity values from the drive widget.
-  float linear_velocity_;
-  float angular_velocity_;
-  // END_TUTORIAL
 };
 
-} // end namespace autoware_rviz_debug
+}  // end namespace autoware_rviz_debug
 
-#endif // TELEOP_PANEL_H
+#endif  // TELEOP_PANEL_H

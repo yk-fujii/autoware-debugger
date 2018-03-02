@@ -33,16 +33,15 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPainter>
+#include <QPushButton>
+#include <QSignalMapper>
 #include <QTimer>
 #include <QVBoxLayout>
 
 #include <geometry_msgs/Twist.h>
 
+#include <std_msgs/Int32.h>
 #include "decision_maker_panel.h"
-#include "drive_widget.h"
-
-#include <state.hpp>
-#include <state_context.hpp>
 
 namespace autoware_rviz_debug
 {
@@ -69,112 +68,67 @@ public:
   std::string state_category_name_;
 };
 
-DecisionMakerPanel::DecisionMakerPanel(QWidget* parent) : rviz::Panel(parent), linear_velocity_(0), angular_velocity_(0)
+DecisionMakerPanel::DecisionMakerPanel(QWidget* parent) : rviz::Panel(parent)
 {
+  statecmd_publisher_ = nh_.advertise<std_msgs::Int32>("/state_cmd", 1);
   // Subs_["state"] = nh_
-  state_machine::StateContext ctx;
 
   // Next we lay out the "output topic" text entry field using a
   // QLabel and a QLineEdit in a QHBoxLayout.
-  QHBoxLayout* topic_layout = new QHBoxLayout;
-  topic_layout->addWidget(new QLabel("Output Topic:"));
-  output_topic_editor_ = new QLineEdit;
-  topic_layout->addWidget(output_topic_editor_);
+  QHBoxLayout* label_layout = new QHBoxLayout;
+  label_layout->addWidget(new QLabel("DecisionMaker QuickOrder"));
 
-  // std::unordered_map<uint64_t, state_machine::BaseState*> state_map = ctx.getStateStores();
-  // std::map<std::string, uint8_t> state_kind_map = ctx.getStateKindMap();
+  QSignalMapper* signalMapper = new QSignalMapper(this);
+  connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(sendTopic(int)));
 
-  std::vector<StateInfo> states;
-// name + id + category
-#if 0
-  for (auto it_state = std::map::begin(state_map); it_state != std::map::end(state_map); it_state++)
-  {
-    StateInfo _state;
-    _state.state_num_ = it_state->getStateNum();
-    _state.state_category_ = it_state->getStateKind();
-    _state.state_num_name_ = it_state->getStateName();
-    states.push_back(_state);
-  }
-#endif
+  QHBoxLayout* button_layout = new QHBoxLayout;
+  QPushButton* button_stop = new QPushButton("Stop");
+  // button_stop->setObjectName(QString::number(14));
+  signalMapper->setMapping(button_stop, 14);
+  connect(button_stop, SIGNAL(clicked()), signalMapper, SLOT(map()));
+
+  QPushButton* button_start = new QPushButton("Start");
+  // button_start->setObjectName(QString::number(13));
+  signalMapper->setMapping(button_start, 13);
+  connect(button_start, SIGNAL(clicked()), signalMapper, SLOT(map()));
+
+  QPushButton* button_lanechange = new QPushButton("lanechange");
+  //  button_lanechange->setObjectName(QString::number(37));
+  signalMapper->setMapping(button_lanechange, 37);
+  connect(button_lanechange, SIGNAL(clicked()), signalMapper, SLOT(map()));
+
+  button_layout->addWidget(button_stop);
+  button_layout->addWidget(button_start);
+  button_layout->addWidget(button_lanechange);
+
   QVBoxLayout* layout = new QVBoxLayout;
-  layout->addLayout(topic_layout);
+  layout->addLayout(label_layout);
+  layout->addLayout(button_layout);
   setLayout(layout);
 }
 
-void DecisionMakerPanel::setVel(float lin, float ang)
+void DecisionMakerPanel::sendTopic(int flag)
 {
-  linear_velocity_ = lin;
-  angular_velocity_ = ang;
-}
-
-void DecisionMakerPanel::updateTopic()
-{
-  setTopic(output_topic_editor_->text());
-}
-
-void DecisionMakerPanel::setTopic(const QString& new_topic)
-{
-  if (new_topic != output_topic_)
+  if (statecmd_publisher_)
   {
-    output_topic_ = new_topic;
-    if (output_topic_ == "")
-    {
-      velocity_publisher_.shutdown();
-    }
-    else
-    {
-      velocity_publisher_ = nh_.advertise<geometry_msgs::Twist>(output_topic_.toStdString(), 1);
-    }
-    Q_EMIT configChanged();
-  }
-
-  // Gray out the control widget when the output topic is empty.
-  drive_widget_->setEnabled(output_topic_ != "");
-}
-
-// Publish the control velocities if ROS is not shutting down and the
-// publisher is ready with a valid topic name.
-void DecisionMakerPanel::sendVel()
-{
-  if (ros::ok() && velocity_publisher_)
-  {
-    geometry_msgs::Twist msg;
-    msg.linear.x = linear_velocity_;
-    msg.linear.y = 0;
-    msg.linear.z = 0;
-    msg.angular.x = 0;
-    msg.angular.y = 0;
-    msg.angular.z = angular_velocity_;
-    velocity_publisher_.publish(msg);
+    std_msgs::Int32 msg;
+    msg.data = flag;
+    statecmd_publisher_.publish(msg);
   }
 }
 
-// Save all configuration data from this panel to the given
-// Config object.  It is important here that you call save()
-// on the parent class so the class id and panel name get saved.
 void DecisionMakerPanel::save(rviz::Config config) const
 {
   rviz::Panel::save(config);
-  config.mapSetValue("Topic", output_topic_);
 }
 
-// Load all configuration data for this panel from the given Config object.
 void DecisionMakerPanel::load(const rviz::Config& config)
 {
   rviz::Panel::load(config);
-  QString topic;
-  if (config.mapGetString("Topic", &topic))
-  {
-    output_topic_editor_->setText(topic);
-    updateTopic();
-  }
 }
 
 }  // end namespace autoware_rviz_debug
 
-// Tell pluginlib about this class.  Every class which should be
-// loadable by pluginlib::ClassLoader must have these two lines
-// compiled in its .cpp file, outside of any namespace scope.
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(autoware_rviz_debug::DecisionMakerPanel, rviz::Panel)
 // END_TUTORIAL
