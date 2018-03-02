@@ -97,6 +97,21 @@ void createWaypointMarker(const autoware_msgs::LaneArray &lane_waypoints_array)
   lane_waypoint_marker.color.b = 1.0;
   lane_waypoint_marker.color.a = 1.0;
   lane_waypoint_marker.points.clear();
+
+  static int _count = 0;
+  visualization_msgs::Marker stop_sign;
+  stop_sign.header = lane_waypoint_marker.header;
+  stop_sign.ns = "sign";
+  stop_sign.scale.x = 0.6;
+  stop_sign.scale.y = 0.6;
+  stop_sign.scale.z = 0.6;
+  stop_sign.color.a = 0.8;
+  stop_sign.color.r = 1;
+  stop_sign.color.g = 1;
+  stop_sign.color.b = 1;
+  stop_sign.type = visualization_msgs::Marker::MESH_RESOURCE;
+  stop_sign.mesh_resource = "package://waypoint_debugger/imgs/stop.dae";
+  stop_sign.mesh_use_embedded_materials = true;
   for (auto lane : lane_waypoints_array.lanes)
   {
     for (unsigned int i = 0; i < lane.waypoints.size(); i++)
@@ -105,9 +120,13 @@ void createWaypointMarker(const autoware_msgs::LaneArray &lane_waypoints_array)
       point = lane.waypoints[i].pose.pose.position;
       point.z += 0.5;
 
-      if (lane.waypoints[i].wpstate.stopline_state)
+      if (lane.waypoints[i].wpstate.stop_state)
       {
         lane_waypoint_marker.points.push_back(point);
+        stop_sign.pose = lane.waypoints[i].pose.pose;
+        stop_sign.pose.position.z += 2;
+        stop_sign.id = i;
+        g_local_waypoints_marker_array.markers.push_back(stop_sign);
         fprintf(stderr, "push\n");
       }
     }
