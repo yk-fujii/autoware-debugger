@@ -120,7 +120,7 @@ void createWaypointMarker(const autoware_msgs::LaneArray &lane_waypoints_array)
       point = lane.waypoints[i].pose.pose.position;
       point.z += 0.5;
 
-      if (lane.waypoints[i].wpstate.stop_state)
+      if (lane.waypoints[i].wpstate.stop_state != 0)
       {
         lane_waypoint_marker.points.push_back(point);
         stop_sign.pose = lane.waypoints[i].pose.pose;
