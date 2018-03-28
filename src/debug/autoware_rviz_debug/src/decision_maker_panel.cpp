@@ -96,14 +96,33 @@ DecisionMakerPanel::DecisionMakerPanel(QWidget* parent) : rviz::Panel(parent)
   //  button_lanechange->setObjectName(QString::number(37));
   signalMapper->setMapping(button_lanechange, 37);
   connect(button_lanechange, SIGNAL(clicked()), signalMapper, SLOT(map()));
+  
+  QPushButton* button_drive = new QPushButton("drive");
+  //  button_lanechange->setObjectName(QString::number(37));
+  signalMapper->setMapping(button_drive, 6);
+  connect(button_drive, SIGNAL(clicked()), signalMapper, SLOT(map()));
 
   button_layout->addWidget(button_stop);
   button_layout->addWidget(button_start);
   button_layout->addWidget(button_lanechange);
+  button_layout->addWidget(button_drive);
+  
+  QHBoxLayout* button_low_layout = new QHBoxLayout;
+  QPushButton* button_green = new QPushButton("Green");
+  signalMapper->setMapping(button_green, 35);
+  connect(button_green, SIGNAL(clicked()), signalMapper, SLOT(map()));
+  
+  QPushButton* button_red = new QPushButton("Red");
+  signalMapper->setMapping(button_red, 34);
+  connect(button_red, SIGNAL(clicked()), signalMapper, SLOT(map()));
+
+  button_low_layout->addWidget(button_green);
+  button_low_layout->addWidget(button_red);
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addLayout(label_layout);
   layout->addLayout(button_layout);
+  layout->addLayout(button_low_layout);
   setLayout(layout);
 }
 
