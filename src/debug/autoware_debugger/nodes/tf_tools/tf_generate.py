@@ -8,15 +8,11 @@ import sensor_msgs.point_cloud2 as pc2
 
 def callback(data):
     sys.stderr.write("got pcd maps. going to create temporary tf.launch file\n")
-    counter = 0
-    xsum=0
-    ysum=0
-    zsum=0
-    for p in pc2.read_points(data, field_names = ("x", "y", "z"), skip_nans=True):
-        counter+=1
-        xsum+= p[0]
-        ysum+= p[1]
-        zsum+= p[2]
+    points = pc2.read_points(data, field_names = ("x", "y", "z"), skip_nans=True)
+    counter = len(points)
+    xsum = sum(map(lambda x: x[0], points))
+    ysum = sum(map(lambda x: x[1], points))
+    zsum = sum(map(lambda x: x[2], points))
     print "<launch>"
     print "<node pkg=\"tf\" type=\"static_transform_publisher\" name=\"world_to_map\" args=\"%f %f %f 0 0 0 /world /map 10 \" /> " %(-1* xsum/counter, -1*ysum/counter, -1*zsum/counter)
     print "</launch>"
