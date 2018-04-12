@@ -1,9 +1,16 @@
 <library path="lib/libautoware_rviz_debug">
 	<class name="autoware_rviz_debug/DecisionMakerPanel"
 		type="autoware_rviz_debug::DecisionMakerPanel"
-         base_class_type="rviz::Panel">
-    <description>
-      A panel widget allowing simple diff-drive style robot base control.
-    </description>
-  </class>
+		base_class_type="rviz::Panel">
+		<description>
+			A panel widget allowing simple diff-drive style robot base control.
+		</description>
+	</class>
+	<class name="autoware_rviz_debug/AutowareUI"
+		type="autoware_rviz_debug::AutowareUI"
+		base_class_type="rviz::Display">
+		<description>
+			aaa
+		</description>
+	</class>
 </library>

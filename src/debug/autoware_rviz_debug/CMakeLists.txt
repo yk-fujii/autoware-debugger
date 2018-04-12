@@ -7,7 +7,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(autoware_rviz_debug)
 find_package(catkin REQUIRED COMPONENTS rviz state)
 catkin_package()
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS}
+			../src/decision_maker_panel/)
 link_directories(${catkin_LIBRARY_DIRS})
 
 set(CMAKE_AUTOMOC ON)
@@ -26,7 +27,9 @@ add_definitions(-DQT_NO_KEYWORDS )
 SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 set(SRC_FILES
-  src/decision_maker_panel.cpp
+  src/decision_maker_panel/decision_maker_panel.cpp
+  src/AutowareUI/plotter_2d_display.cpp
+  src/AutowareUI/overlay_utils.cpp
 )
 
 add_library(${PROJECT_NAME} ${SRC_FILES})

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>imu_trans</name>
+  <version>1.5.1</version>
+  <description>The imu_trans package</description>
+  <license>BSD</license>
+   <maintainer email="yusuke.fujii@tier4.jp">Yusuke Fujii</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <depend>roscpp</depend>
+  <depend>geometry_msgs</depend>
+  <depend>autoware_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+
+  <export>
+  </export>
+</package>
