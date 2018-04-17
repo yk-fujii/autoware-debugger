@@ -11,13 +11,14 @@
 #include <geometry_msgs/TwistStamped.h>
 
 std::unordered_map<std::string, ros::Subscriber> Subs;
+ros::Publisher pub;
 
 float cur_vel = 0.0;
 
 void doTransform(const sensor_msgs::Imu &imu_in)
 {
 #if 1
-  sensor_msgs::Imu imu_out;
+  sensor_msgs::Imu imu_out = imu_in;
   double r, p, y;
   tf::Quaternion imu_qu(imu_in.orientation.x, imu_in.orientation.y, imu_in.orientation.z, imu_in.orientation.w);
 
@@ -47,7 +48,8 @@ void doTransform(const sensor_msgs::Imu &imu_in)
   {
     init_time = time;
   }
-  fprintf(stderr, "%f,%f,%f\n", time - init_time, accel.x() / 9.80665, cur_vel);
+  pub.publish(imu_out);
+// fprintf(stderr, "%f,%f,%f\n", time - init_time, accel.x() / 9.80665, cur_vel);
 
 #else
   fprintf(stderr, "%f,%f\n", imu_in.linear_acceleration.x, imu_in.linear_acceleration.y);
@@ -78,6 +80,7 @@ int main(int argc, char **argv)
   Subs["imu_raw"] = nh_.subscribe("imu_raw", 10, callbackImu);
   Subs["can_info"] = nh_.subscribe("can_info", 10, callbackCanInfo);
   Subs["curvel"] = nh_.subscribe("current_velocity", 10, callbackCurVel);
+  pub = nh_.advertise<sensor_msgs::Imu>("imu_trans", 10, false);
   ros::spin();
   return 0;
 }
