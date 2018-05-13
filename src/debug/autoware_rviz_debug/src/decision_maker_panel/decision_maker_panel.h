@@ -35,28 +35,43 @@
 #include <rviz/panel.h>
 #endif
 
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPainter>
+#include <QPushButton>
+#include <QSignalMapper>
+#include <QTimer>
+#include <QVBoxLayout>
+#include <std_msgs/String.h>
+
 class QLineEdit;
 
-namespace autoware_rviz_debug
-{
-class DecisionMakerPanel : public rviz::Panel
-{
+namespace autoware_rviz_debug {
+class DecisionMakerPanel : public rviz::Panel {
   Q_OBJECT
 public:
-  DecisionMakerPanel(QWidget* parent = 0);
+  DecisionMakerPanel(QWidget *parent = 0);
 
-  virtual void load(const rviz::Config& config);
+  virtual void load(const rviz::Config &config);
   virtual void save(rviz::Config config) const;
 
 public Q_SLOTS:
-  void sendTopic(int flag);
+  void sendTopic(const QString &key);
 
   // Then we finish up with protected member variables.
 protected:
   ros::Publisher statecmd_publisher_;
+  ros::Subscriber available_transition_subscriber_;
   ros::NodeHandle nh_;
+  QVBoxLayout *button_layout;
+  QVBoxLayout *window_layout;
+  QSignalMapper *signalMapper;
+
+  void callbackFromAvailableTransition(const std_msgs::String &msg);
 };
 
-}  // end namespace autoware_rviz_debug
+} // end namespace autoware_rviz_debug
 
-#endif  // TELEOP_PANEL_H
+#endif // TELEOP_PANEL_H

@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   vector_map
   lane_planner
   autoware_msgs
-  amathutils
+  amathutils_lib
   dynamic_reconfigure
 )
 
@@ -22,7 +22,7 @@ generate_dynamic_reconfigure_options(cfg/WaypointDebugger.cfg)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES lane_follower
-  CATKIN_DEPENDS roscpp std_msgs tf waypoint_follower vector_map lane_planner autoware_msgs amathutils 
+  CATKIN_DEPENDS roscpp std_msgs tf waypoint_follower vector_map lane_planner autoware_msgs amathutils_lib
   DEPENDS gnss
 )
 

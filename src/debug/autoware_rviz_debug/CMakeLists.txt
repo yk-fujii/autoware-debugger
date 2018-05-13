@@ -5,8 +5,9 @@
 ## First start with some standard catkin stuff.
 cmake_minimum_required(VERSION 2.8.3)
 project(autoware_rviz_debug)
-find_package(catkin REQUIRED COMPONENTS rviz state)
-catkin_package()
+find_package(catkin REQUIRED COMPONENTS rviz std_msgs)
+catkin_package(
+  CATKIN_DEPENDS  std_msgs)
 include_directories(${catkin_INCLUDE_DIRS}
 			../src/decision_maker_panel/)
 link_directories(${catkin_LIBRARY_DIRS})
@@ -31,6 +32,12 @@ set(SRC_FILES
   src/AutowareUI/plotter_2d_display.cpp
   src/AutowareUI/overlay_utils.cpp
 )
+
+
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
+
 
 add_library(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES})

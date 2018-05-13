@@ -29,24 +29,15 @@
 
 #include <stdio.h>
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPainter>
-#include <QPushButton>
-#include <QSignalMapper>
-#include <QTimer>
-#include <QVBoxLayout>
-
 #include <geometry_msgs/Twist.h>
 
-#include <std_msgs/Int32.h>
 #include "decision_maker_panel.h"
+#include <std_msgs/String.h>
 
-namespace autoware_rviz_debug
-{
+namespace autoware_rviz_debug {
 // BEGIN_TUTORIAL
-// Here is the implementation of the DecisionMakerPanel class.  DecisionMakerPanel
+// Here is the implementation of the DecisionMakerPanel class.
+// DecisionMakerPanel
 // has these responsibilities:
 //
 // - Act as a container for GUI elements DriveWidget and QLineEdit.
@@ -58,8 +49,7 @@ namespace autoware_rviz_debug
 // constructor, and also zero-ing the velocities we will be
 // publishing.
 
-class StateInfo
-{
+class StateInfo {
 private:
 public:
   uint64_t state_num_;
@@ -68,36 +58,44 @@ public:
   std::string state_category_name_;
 };
 
-DecisionMakerPanel::DecisionMakerPanel(QWidget* parent) : rviz::Panel(parent)
-{
-  statecmd_publisher_ = nh_.advertise<std_msgs::Int32>("/state_cmd", 1);
-  // Subs_["state"] = nh_
+DecisionMakerPanel::DecisionMakerPanel(QWidget *parent) : rviz::Panel(parent) {
+  statecmd_publisher_ = nh_.advertise<std_msgs::String>("/state_cmd", 1);
+
+  available_transition_subscriber_ =
+      nh_.subscribe("/decision_maker/available_transition", 1,
+                    &DecisionMakerPanel::callbackFromAvailableTransition, this);
 
   // Next we lay out the "output topic" text entry field using a
   // QLabel and a QLineEdit in a QHBoxLayout.
-  QHBoxLayout* label_layout = new QHBoxLayout;
+  QHBoxLayout *label_layout = new QHBoxLayout;
   label_layout->addWidget(new QLabel("DecisionMaker QuickOrder"));
 
-  QSignalMapper* signalMapper = new QSignalMapper(this);
-  connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(sendTopic(int)));
+  signalMapper = new QSignalMapper(this);
+  connect(signalMapper, SIGNAL(mapped(QString)), this,
+          SLOT(sendTopic(QString)));
 
-  QHBoxLayout* button_layout = new QHBoxLayout;
-  QPushButton* button_stop = new QPushButton("Stop");
+  window_layout = new QVBoxLayout;
+  button_layout = new QVBoxLayout;
+  setLayout(window_layout);
+
+#if 0
+  QHBoxLayout *button_layout = new QHBoxLayout;
+  QPushButton *button_stop = new QPushButton("Stop");
   // button_stop->setObjectName(QString::number(14));
   signalMapper->setMapping(button_stop, 14);
   connect(button_stop, SIGNAL(clicked()), signalMapper, SLOT(map()));
 
-  QPushButton* button_start = new QPushButton("Start");
+  QPushButton *button_start = new QPushButton("Start");
   // button_start->setObjectName(QString::number(13));
   signalMapper->setMapping(button_start, 13);
   connect(button_start, SIGNAL(clicked()), signalMapper, SLOT(map()));
 
-  QPushButton* button_lanechange = new QPushButton("lanechange");
+  QPushButton *button_lanechange = new QPushButton("lanechange");
   //  button_lanechange->setObjectName(QString::number(37));
   signalMapper->setMapping(button_lanechange, 37);
   connect(button_lanechange, SIGNAL(clicked()), signalMapper, SLOT(map()));
-  
-  QPushButton* button_drive = new QPushButton("drive");
+
+  QPushButton *button_drive = new QPushButton("drive");
   //  button_lanechange->setObjectName(QString::number(37));
   signalMapper->setMapping(button_drive, 6);
   connect(button_drive, SIGNAL(clicked()), signalMapper, SLOT(map()));
@@ -106,47 +104,82 @@ DecisionMakerPanel::DecisionMakerPanel(QWidget* parent) : rviz::Panel(parent)
   button_layout->addWidget(button_start);
   button_layout->addWidget(button_lanechange);
   button_layout->addWidget(button_drive);
-  
-  QHBoxLayout* button_low_layout = new QHBoxLayout;
-  QPushButton* button_green = new QPushButton("Green");
+
+  QHBoxLayout *button_low_layout = new QHBoxLayout;
+  QPushButton *button_green = new QPushButton("Green");
   signalMapper->setMapping(button_green, 35);
   connect(button_green, SIGNAL(clicked()), signalMapper, SLOT(map()));
-  
-  QPushButton* button_red = new QPushButton("Red");
+
+  QPushButton *button_red = new QPushButton("Red");
   signalMapper->setMapping(button_red, 34);
   connect(button_red, SIGNAL(clicked()), signalMapper, SLOT(map()));
 
   button_low_layout->addWidget(button_green);
   button_low_layout->addWidget(button_red);
-
-  QVBoxLayout* layout = new QVBoxLayout;
-  layout->addLayout(label_layout);
-  layout->addLayout(button_layout);
-  layout->addLayout(button_low_layout);
-  setLayout(layout);
+#endif
 }
 
-void DecisionMakerPanel::sendTopic(int flag)
-{
-  if (statecmd_publisher_)
-  {
-    std_msgs::Int32 msg;
-    msg.data = flag;
+void clearWidgets(QLayout *layout) {
+  if (!layout)
+    return;
+  while (auto item = layout->takeAt(0)) {
+    delete item->widget();
+    clearWidgets(item->layout());
+  }
+}
+
+void DecisionMakerPanel::callbackFromAvailableTransition(
+    const std_msgs::String &msg) {
+
+  static std::string prev_text;
+
+  if (prev_text == msg.data) {
+    return;
+  }
+  clearWidgets(button_layout);
+  clearWidgets(window_layout);
+
+  std::vector<std::string> v;
+  std::stringstream ss(msg.data);
+  std::string buffer;
+  while (std::getline(ss, buffer, ',')) {
+    v.push_back(buffer);
+  }
+
+  int i = 0;
+  const int width = 4;
+  for (const auto &keyval : v) {
+    std::stringstream keyval_ss(keyval);
+    std::string key;
+    std::getline(keyval_ss, key, ':');
+
+    QPushButton *button = new QPushButton(keyval.c_str());
+    signalMapper->setMapping(button, QString::fromStdString(key));
+    connect(button, SIGNAL(clicked()), signalMapper, SLOT(map()));
+    button_layout->addWidget(button);
+    i++;
+  }
+
+  window_layout->addLayout(button_layout);
+}
+
+void DecisionMakerPanel::sendTopic(const QString &key) {
+  if (statecmd_publisher_) {
+    std_msgs::String msg;
+    msg.data = key.toStdString();
     statecmd_publisher_.publish(msg);
   }
 }
 
-void DecisionMakerPanel::save(rviz::Config config) const
-{
+void DecisionMakerPanel::save(rviz::Config config) const {
   rviz::Panel::save(config);
 }
 
-void DecisionMakerPanel::load(const rviz::Config& config)
-{
+void DecisionMakerPanel::load(const rviz::Config &config) {
   rviz::Panel::load(config);
 }
 
-}  // end namespace autoware_rviz_debug
+} // end namespace autoware_rviz_debug
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(autoware_rviz_debug::DecisionMakerPanel, rviz::Panel)

@@ -18,12 +18,12 @@
 
 #include <ros/console.h>
 #include <vector_map/vector_map.h>
-#include <amathutils.hpp>
+#include <amathutils_lib/amathutils.hpp>
 
 namespace autoware_debug
 {
 using namespace vector_map;
-geometry_msgs::Point to_geoPoint(const vector_map_msgs::Point &vp)
+geometry_msgs::Point to_geoPoint(const vector_map_msgs::Point& vp)
 {
   geometry_msgs::Point gp;
   gp.x = vp.ly;
@@ -34,7 +34,7 @@ geometry_msgs::Point to_geoPoint(const vector_map_msgs::Point &vp)
 class LaneDebugger
 {
 private:
-  tf::TransformListener *tflistener_;
+  tf::TransformListener* tflistener_;
   std::map<std::string, ros::Subscriber> Subs_;
   std::map<std::string, ros::Publisher> Pubs_;
   vector_map::VectorMap vmap_;
@@ -72,7 +72,7 @@ public:
   std::vector<geometry_msgs::Point> getNearestDTLane(geometry_msgs::PointStamped pt)
   {
     std::vector<geometry_msgs::Point> ret;
-    std::vector<DTLane> DTLanes = vmap_.findByFilter([](const DTLane &dtlane) { return true; });
+    std::vector<DTLane> DTLanes = vmap_.findByFilter([](const DTLane& dtlane) { return true; });
 
     geometry_msgs::PointStamped current_pt_map;
 
@@ -82,7 +82,7 @@ public:
     vector_map_msgs::DTLane closest_dtlane;
     vector_map_msgs::Point closest_pid;
     double closest_distance = 999999.999;
-    for (auto &dtlane : DTLanes)
+    for (auto& dtlane : DTLanes)
     {
       vector_map_msgs::Point dtlane_pid = vmap_.findByKey(Key<Point>(dtlane.pid));
       amathutils::point p1(dtlane_pid.ly, dtlane_pid.bx, 0.0);
@@ -95,9 +95,9 @@ public:
       }
     }
 
-    std::vector<Lane> Lanes = vmap_.findByFilter([](const Lane &lane) { return true; });
+    std::vector<Lane> Lanes = vmap_.findByFilter([](const Lane& lane) { return true; });
     std::vector<Lane> Lanes_lnids =
-        vmap_.findByFilter([&](const Lane &lane) { return lane.did == closest_dtlane.did; });
+        vmap_.findByFilter([&](const Lane& lane) { return lane.did == closest_dtlane.did; });
 
     if (Lanes_lnids.empty())
       return std::vector<geometry_msgs::Point>();
@@ -125,7 +125,7 @@ public:
 
     return ret;
   }
-  void clickedPointCallback(const geometry_msgs::PointStamped &msg)
+  void clickedPointCallback(const geometry_msgs::PointStamped& msg)
   {
     std::vector<geometry_msgs::Point> closestDtl = getNearestDTLane(msg);
 
@@ -145,7 +145,7 @@ public:
     dtlane_line_marker.color.b = 0.2;
     dtlane_line_marker.lifetime = ros::Duration(0);
 
-    for (auto &lane : closestDtl)
+    for (auto& lane : closestDtl)
     {
       dtlane_line_marker.points.push_back(lane);
     }
@@ -153,7 +153,7 @@ public:
     Pubs_["lane_debug"].publish(lanes_marker_array);
     lanes_marker_array.markers.clear();
   }
-  void currentPoseCallback(const geometry_msgs::PoseStamped &msg)
+  void currentPoseCallback(const geometry_msgs::PoseStamped& msg)
   {
     geometry_msgs::PointStamped pt;
     pt.header = msg.header;
@@ -192,7 +192,7 @@ public:
 
 using namespace autoware_debug;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "LaneDebuggerNode");
   autoware_debug::LaneDebugger lane_debugger;

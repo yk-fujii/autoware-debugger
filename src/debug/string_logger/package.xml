@@ -1,0 +1,13 @@
+<package>
+  <name>StringLogger</name>
+  <version>1.0.0</version>
+  <description>
+  </description>
+  <maintainer email="yusuke.fujii@tier4.jp">Yusuke Fujii</maintainer>
+  <license>BSD</license>
+  <url>http://www.autoware.ai/</url>
+  <author>Yusuke FUJII</author>
+  <buildtool_depend>catkin</buildtool_depend>
+
+
+</package>
